@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice to Text App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f4f4f9;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    .timer {
+      font-size: 2rem;
+      margin: 10px 0;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      color: white;
+      background-color: #007bff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .output {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background: #fff;
+      border-radius: 5px;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Voice to Text App</h1>
+    <div class="timer" id="timer">00:00</div>
+    <button id="startStopButton">Start</button>
+    <div class="output" id="output">Your speech will appear here...</div>
+  </div>
+
+  <script>
+    let recognition;
+    let isRecording = false;
+    let timerInterval;
+    let seconds = 0;
+
+    // Format time as MM:SS
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    // Timer update function
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        seconds++;
+        document.getElementById("timer").textContent = formatTime(seconds);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      seconds = 0;
+      document.getElementById("timer").textContent = "00:00";
+    }
+
+    // Initialize SpeechRecognition
+    try {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = true;
+      recognition.continuous = true;
+
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0].transcript)
+          .join("");
+        document.getElementById("output").textContent = transcript;
+      };
+
+      recognition.onerror = (event) => {
+        console.error("Speech recognition error: ", event.error);
+      };
+
+    } catch (error) {
+      console.error("Speech recognition is not supported in this browser.", error);
+      alert("Your browser does not support speech recognition. Please try using Chrome.");
+    }
+
+    // Start/Stop Button Event Listener
+    document.getElementById("startStopButton").addEventListener("click", () => {
+      if (!isRecording) {
+        isRecording = true;
+        document.getElementById("startStopButton").textContent = "Stop";
+        recognition.start();
+        startTimer();
+      } else {
+        isRecording = false;
+        document.getElementById("startStopButton").textContent = "Start";
+        recognition.stop();
+        stopTimer();
+      }
+    });
+  </script>
+</body>
+</html>
